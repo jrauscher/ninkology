@@ -21,21 +21,17 @@ use Cwd;
 
 
 #-------------------------------------------------
-# Change these three paths to fit your system
+# Change these file paths to fit your system
 # ------------------------------------------------
 
 # The path where the extracted archive will be stored temporarily
 my $tempPathLocation = "/tmp/ninkology/archive/";
 
 # The path to the "ninka.pl" program on the system
-my $ninka = "/home/unouser/ninka/ninka.pl";
+my $ninka = "/opt/ninka/ninka.pl";
 
 # The path to the FOSSology nomos agent program
 my $fossology_nomos = "/usr/share/fossology/nomos/agent/nomos";
-
-# The directory where the output file will be placed
-# (the output code will change when we implement a web interface)
-my $outputDirectory = "/home/unouser/";
 
 
 
@@ -79,8 +75,8 @@ print "Extracted archive to $tempPathFull.\n\n";
 
 
 #Open "NINKA_OUTPUT" and "FOSS_OUTPUT" files for output
-open($output_ninka, '>', "$outputDirectory/NINKA_OUTPUT.txt");
-open($output_foss, '>', "$outputDirectory/FOSS_OUTPUT.txt");
+open($output_ninka, '>', "NINKA_OUTPUT.txt");
+open($output_foss, '>', "FOSS_OUTPUT.txt");
 
 
 #Get the list of all files in the directory and subdirectories
