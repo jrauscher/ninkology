@@ -1,0 +1,45 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN" 
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd"> 
+
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="my.css">
+		<title>Ninka FOSSology</title>
+	</head>
+
+<body>
+	<div class="span">
+		<div class="mid-span">
+			<div class="header">
+			</div><!--header-->
+			
+			<div class="menu">
+				Ninka FOSSology
+			</div><!--menu-->
+			
+			<div class="transition">
+			</div>
+			
+			<div class="content">
+				<p>
+				Thank You for submitting your file ([% packageName %]). <br/><br/>
+				A email will be sent to you at:[% email %] containing the results of the scan. <br/>
+				
+				The scan can take up to 30min please be patient.<br/>
+				<!--
+				<a href="/processed/[% packageName %]/FOSS_OUTPUT.html">FOSSology result</a><br/>
+				<a href="/processed/[% packageName %]/NINKA_OUTPUT.html">Ninka result</a><br/> 
+				-->
+				</p>
+			</div><!--content-->
+			
+			<div class="footer">
+				<p></p>
+			</div><!--Footer-->
+
+		</div><!--mid-span-->
+	</div><!--span-->
+</body>
+
+</html>
+
