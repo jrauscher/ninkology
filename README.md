@@ -1,7 +1,5 @@
-
 Ninkology
 =========
-
 Version:
 1.0
 =========
