@@ -1,40 +1,40 @@
-Ninkology
+#Ninkology
 
-Version:
+##Version:
 1.0
 
-System Overview:
+##System Overview:
 Ninkology works to enhance the open source software license identification process by combining the license scan results of Ninka and FOSSology, which are two open source software license identification tools. Ninkology creates one SPDX document for a package with the combined scan results of Ninka and FOSSology.
 
-Copyright information:
+##Copyright information:
 Ninkology is copyrighted by Ryan Vanek, Jordan Rauscher, and Hai Nguyen .
 
-License information:
+##License information:
 Documentation: CC BY-SA 3.0. 
 Code: Apache 2.0.
 
-Installation information:
+##Installation information:
 
-Code contribution management plan:
+##Code contribution management plan:
 - Source code changes are commited to the GitHub repository at:
 - https://github.com/ryanv09/ninkology
 - Bugs and issues with the system will be tracked in the Github issue tracker of the repository.
 - https://github.com/ryanv09/ninkology/issues
 For further information, please contact Matt Germonprez at germonprez@gmail.com
 
-Stakeholder communities:
+##Stakeholder communities:
 SPDX
 FOSSology 
 Ninka
 
-Communication:
+##Communication:
 Github:  https://github.com/ryanv09/ninkology
 Further inquiries: Matt Germonprez germonprez@gmail.com 
 
-Links to examples/mockups:
+##Links to examples/mockups:
 http://spdxdev.ist.unomaha.edu/ninkology/
 
-Technical Specification:
+##Technical Specification:
 Ninkology requests the following software and hardware requirements to run:
 a. Software
 Operating system: Ubuntu 12.04 LTS
