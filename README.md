@@ -2,7 +2,7 @@ Ninkology
 =========
 Version:
 1.0
-=========
+
 System Overview:
 Ninkology works to enhance the open source software license identification process by combining the license scan results of Ninka and FOSSology, which are two open source software license identification tools. Ninkology creates one SPDX document for a package with the combined scan results of Ninka and FOSSology.
 =========
