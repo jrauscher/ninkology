@@ -9,6 +9,7 @@ Ninkology is copyrighted by Ryan Vanek, Jordan Rauscher, and Hai Nguyen .
 Documentation: CC BY-SA 3.0. 
 Code: Apache 2.0.
 ###Installation information:
+Still missing
 ###Code contribution management plan:
 - Source code changes are commited to the GitHub repository at:
 - https://github.com/ryanv09/ninkology
