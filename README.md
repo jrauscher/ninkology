@@ -28,6 +28,7 @@ Install mailutils, sharutils, ssmtp (or use existing mail server)<br/>
 #### Installation of Ninkology
 Place the files located in src/ninkology/ wherever you want to run Ninkology from.<br/>
 Place the files in src/webinterface/ into an apache directory (default: /var/www/).<br/>
+Change the permissions of the webinterface/cgi/upload/ folder to 777<br/>
 
 -----------------------------------------------------------------------
 
