@@ -55,6 +55,7 @@ Web server: Apache Web Server 2.4 for the Graphical User Interface to the system
 Software tool: FOSSology (requires PHP 5.6 and Postgre SQL 9.1) and Ninka
 
 b. Hardware: (minimum requirements)
+
 CPU: 2.5GHz processor
 
 RAM: 4GB
