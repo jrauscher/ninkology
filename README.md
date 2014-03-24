@@ -1,39 +1,39 @@
 Ninkology
-=========
+
 Version:
 1.0
-=========
+
 System Overview:
 Ninkology works to enhance the open source software license identification process by combining the license scan results of Ninka and FOSSology, which are two open source software license identification tools. Ninkology creates one SPDX document for a package with the combined scan results of Ninka and FOSSology.
-=========
+
 Copyright information:
 Ninkology is copyrighted by Ryan Vanek, Jordan Rauscher, and Hai Nguyen .
-=========
+
 License information:
 Documentation: CC BY-SA 3.0. 
 Code: Apache 2.0.
-=========
+
 Installation information:
-=========
+
 Code contribution management plan:
-•Source code changes are commited to the GitHub repository at:
-https://github.com/ryanv09/ninkology
-•Bugs and issues with the system will be tracked in the Github issue tracker of the repository.
-https://github.com/ryanv09/ninkology/issues
-•For further information, please contact Matt Germonprez at germonprez@gmail.com
-=========
+- Source code changes are commited to the GitHub repository at:
+- https://github.com/ryanv09/ninkology
+- Bugs and issues with the system will be tracked in the Github issue tracker of the repository.
+- https://github.com/ryanv09/ninkology/issues
+For further information, please contact Matt Germonprez at germonprez@gmail.com
+
 Stakeholder communities:
 SPDX
 FOSSology 
 Ninka
-=========
+
 Communication:
 Github:  https://github.com/ryanv09/ninkology
 Further inquiries: Matt Germonprez germonprez@gmail.com 
-=========
+
 Links to examples/mockups:
 http://spdxdev.ist.unomaha.edu/ninkology/
-=========
+
 Technical Specification:
 Ninkology requests the following software and hardware requirements to run:
 a. Software
@@ -48,5 +48,5 @@ b. Hardware: (minimum requirements)
 CPU: 2.5GHz processor
 RAM: 4GB
 HDD: 500 GB
-=========
+
 
