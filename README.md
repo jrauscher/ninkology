@@ -16,7 +16,7 @@ Code: Apache 2.0.
 Still missing
 
 ###Code contribution management plan:
-Source code changes are commited to the GitHub repository at:https://github.com/ryanv09/ninkology
+Source code changes are commited to the GitHub repository at https://github.com/ryanv09/ninkology
 
 Bugs and issues with the system will be tracked in the Github issue tracker at https://github.com/ryanv09/ninkology/issues
 
@@ -30,7 +30,7 @@ FOSSology
 Ninka
 
 ###Communication:
-Github:  https://github.com/ryanv09/ninkology.
+Github: https://github.com/ryanv09/ninkology
 
 Further inquiries: Matt Germonprez germonprez@gmail.com 
 
@@ -46,7 +46,7 @@ Operating system: Ubuntu 12.04 LTS
 
 Programing languages: Perl 5.14.2, PHP 5.3.10-1ubuntu3.9
 
-Perl Archive::Zip module (http://search.cpan.org/~phred/Archive-Zip-1.37/lib/Archive/Zip.pm)
+Perl Archive: Zip module (http://search.cpan.org/~phred/Archive-Zip-1.37/lib/Archive/Zip.pm)
 
 Mail server: mailutils, sharutils, ssmtp (for the mail server)
 
