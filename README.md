@@ -4,14 +4,13 @@
 
 ###System Overview:
 Ninkology works to enhance the open source software license identification process by combining the license scan results of Ninka and FOSSology, which are two open source software license identification tools. Ninkology creates one SPDX document for a package with the combined scan results of Ninka and FOSSology.
-
 ###Copyright information:
 Ninkology is copyrighted by Ryan Vanek, Jordan Rauscher, and Hai Nguyen.
 
 ###License information:
-Documentation: CC BY-SA 3.0
+Documentation: CC BY-SA 3.0.
 
-Code: Apache 2.0
+Code: Apache 2.0.
 
 ###Installation information:
 Still missing
