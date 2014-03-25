@@ -4,11 +4,14 @@
 None
 
 ###Features: 
-- support uploading file or package to web interface for scanning (http:) and send scanned license information as JSON to user’s email
-- support license scanning via command line
+- Combined license scanning (with Ninka and FOSSology) via command line<br/>
+- Uploading a file or package via web interface. Results are sent to user e-mail when the scan is complete<br/>
+
 
 ###Performance improvements: 
 None
 
 ###Documentation: 
-- Create version number, system overview, copyright information, license information, installation information, code contribution management plan, stakeholder communities, communication, link to examples/mockups, technical specification, and data flow. 
+- Added README.md, which contains general information about Ninkology 1.0<br/>
+- Added LICENSE.txt, which contains the licensing information of Ninkology<br/>
+- Added DataFlow.pdf, which contains the general data flow of Ninkology<br/>
