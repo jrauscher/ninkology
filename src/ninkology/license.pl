@@ -2,12 +2,19 @@
 use strict;
 use warnings;
 
-print ""; # This makes the 'requires licenselib.pl' happy in scan.pl
+print ""; # This makes the 'require licenselib.pl' happy in scan.pl
+
+
+# Copyright (C) 2014 Ryan Vanek
+# License: Apache 2.0
+#
+# This program just hides the big ugly hash that 'scan.pl' uses
+# for license comparisons between Ninka and FOSSology
 
 
 
-# Creates a hash to map Ninka output (keys) to FOSSology output (values)
-# where pairings of the same license exist
+# This subroutine creates a hash to map Ninka output (keys) to
+# FOSSology output (values) where pairings of the same license exist.
 #
 # Pairs look like: 'x', 'y' 
 # where 'x' is the Ninka equivalent of FOSSOlogy's 'y'

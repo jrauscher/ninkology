@@ -6,13 +6,34 @@ use Cwd qw(abs_path);
 use Email::Valid;
 
 
-my $emailAddress;
+# Copyright (C) 2014 Ryan Vanek
+# License: Apache 2.0
+#
+# This program is the intended entry point for Ninkology.
+#
+# It calls scan.pl with the given arguments and then either prints out the results
+# of the scan or e-mails the results depending on the options given
+#
+
+
+# Usage: ninkology.pl <options> <filename> 
+#
+# Types of archive files accepted:
+# (these are the types supported by the Archive::Extract perl module)
+# .tar, .tgz, .gz, .Z, .zip, .bz2, .tbz, .lzma, .xz, .txz
+#
+# Options:
+# -f            Scan with only FOSSology
+# -n            Scan with only Ninka
+# -fn           Scan with both (this is the default behaviour)
+#
+# -m <address>  E-mail the results to <address> instead of printing to STDOUT
 
 my $argv_m = 0;     # Mail to an e-mail address (eg. '-m ex@example.com')
-my $argv_spdx = 0;  # Generate SPDX output
 my $arguments = ""; # Command line arguments to pass to 'scan.pl'
 
-my $fileName;
+my $fileName;       # The name of the file/archive to process
+my $emailAddress;   # The e-mail address to mail to if '-m' is used
 
 
 if (!$ARGV[0])
@@ -36,6 +57,7 @@ else
             $x++;
             $emailAddress = $ARGV[$x]; 
             
+            # Check is the address is value
             if (Email::Valid -> address($emailAddress) ? 0 : 1)
             {
                 die "\nArgument '-m' must be followed by a valid e-mail address\n\n";
@@ -47,10 +69,10 @@ else
         {
             print "\n\n";
             print "Usage: $0 [options] file\n\n";
-            print "Options:\n";
-            print "-m <address>\tSend an e-mail to <address> with the scan results\n";
-            print "-f\t\tScan with FOSSology only\n";
-            print "-n\t\tScan with Ninka only\n";
+            print "Options:\n";            
+            print "-f\t\tScan with only FOSSology\n";
+            print "-n\t\tScan with only Ninka\n";
+            print "-m <address>\tE-mail the results to <address> instead of printing to STDOUT\n";
             print "\n\n";
             exit;
         }

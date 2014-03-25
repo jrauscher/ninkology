@@ -5,11 +5,14 @@ use strict;
 use warnings;
 use Cwd qw(abs_path);
 
+# Find the license.pl program
 chomp (my $licensepl = `find / -name 'license.pl' 2>/dev/null | sed -n 1p`);
-
 require "$licensepl";
 
-
+# Copyright (C) 2014 Ryan Vanek
+# License: Apache 2.0
+#
+#
 # This program takes a file or archive and scans the file or files in the archive
 # for open source software licenses using Ninka and FOSSology.
 #
@@ -20,17 +23,16 @@ require "$licensepl";
 #          -- If the file was part of an archive, this will include the path
 #
 #   ld_val: The license found in the file
-#           -- If Ninka and FOSSology find the same license, this contains the license name
+#           -- This value contains the license name(s) if Ninka and FOSSology find the same license(s), 
 #           -- None - Both Ninka and FOSSology found no license in the file
-#           -- NOASSERTION - There was a mismatch between the output of Ninka and FOSSology
+#           -- NOASSERTION - There was a mismatch between the license(s) found by Ninka and FOSSology
 #
 #   c_val: Comment on the licenseDeclated.
 #          -- Contains the direct outputs of both Ninka and Fossology
 #          -- "#Ninka: <Ninka_output> #FOSSology: <FOSSology_output>"
 
 
-
-# Usage: scan.pl <options> <archive file name> 
+# Usage: scan.pl <options> <filename> 
 #
 # Types of archive files accepted:
 # (these are the types supported by the Archive::Extract perl module)
@@ -167,7 +169,10 @@ foreach my $fileName (@files)
     # Scan the file with Ninka
     if ($argv_n)
     {
+        # Run the scan
         $ninkaResult = `perl $ninkaProgram $fileName`;
+        
+        # Make sure the result came back OK
         if ($ninkaResult =~ /(.*?);(.*?)(?:;|$)/)
         {         
             if ($2 ne 'ERROR')
@@ -177,6 +182,7 @@ foreach my $fileName (@files)
               
                 if (!$argv_f)
                 {
+                    # Declare NOASSERTION if only scanning with Ninka
                     $licenseDeclared = "NOASSERTION";
                 }
                 else
@@ -190,13 +196,17 @@ foreach my $fileName (@files)
     # Scan the file with FOSSology
     if ($argv_f)
     {
+        # Run the scan
         $fossResult = `$nomosProgram $fileName`;
+        
+        # Make sure the scan came back OK
         if ($fossResult =~ /File\s(.*)\scontains license\(s\)\s(.*)/) 
         {
             $licenseComment .= "#FOSSology: $2";
 
             if (!$argv_n)
             {
+                # Declare NOASSERTION if only scanning with FOSSology
                 $licenseDeclared = "NOASSERTION";
             }
             else
@@ -208,9 +218,10 @@ foreach my $fileName (@files)
     }    
    
     # Compare to see if Ninka and FOSSology found the same license(s) on the file    
-    # Ninka found no licenses
+    # If the file/archive was scanned with both Ninka and FOSSology
     if ($argv_f && $argv_n)
     {
+        # Ninka found no licenses
         if ($ninkaResults[0] eq 'NONE')
         {
             # FOSSology also found no licenses
@@ -229,7 +240,7 @@ foreach my $fileName (@files)
         {
             $licenseDeclared = "NOASSERTION"
         }
-        # Ninka and FOSSology didn't not have the same number of licenses
+        # Ninka and FOSSology did not find the same number of licenses
         elsif (scalar(@ninkaResults) != scalar(@fossResults))
         {
             $licenseDeclared = "NOASSERTION";
@@ -242,7 +253,7 @@ foreach my $fileName (@files)
             # Compare to see if Ninka and FOSSology found the same license(s) on the file
             for (my $x = 0; $x < scalar(@ninkaResults); $x++)
             {      
-                # If there is a mapping for this license to FOSSology's licenses
+                # If there is a mapping for this license to one of FOSSology's licenses
                 if ($ninkaToFossHash{$ninkaResults[$x]})
                 {
                     # Swap the Ninka result with the FOSSology equivalent
@@ -272,6 +283,7 @@ foreach my $fileName (@files)
                     last;
                 }
             }
+
             
             # Something didn't match somewhere
             if ($outerMismatchFlag)
@@ -291,6 +303,7 @@ foreach my $fileName (@files)
         } 
     }
     
+    # Print out the JSON with fileName, licenseDeclared, and licenseComment values
     print "{\"fileName\": \"$fileName\", \"licenseDeclared\": \"$licenseDeclared\", \"licenseComment\": \"$licenseComment\"}\n";
 }
 
