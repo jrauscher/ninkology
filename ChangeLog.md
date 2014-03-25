@@ -4,8 +4,8 @@
 None
 
 ###Features: 
-- Combined license scanning (with Ninka and FOSSology) via command line<br/>
-- Uploading a file or package via web interface. Results are sent to user e-mail when the scan is complete<br/>
+- Combined license scanning (with Ninka and FOSSology) of files or packages via command line<br/>
+- Support for uploading a file or package via web interface. Results are sent to user e-mail when the scan is complete<br/>
 
 
 ###Performance improvements: 
