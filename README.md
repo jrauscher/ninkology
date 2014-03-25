@@ -31,7 +31,7 @@ Place the files located in src/ninkology/ wherever you want to run Ninkology fro
 ##### Installation of Ninkology web interface
 Place the files in src/webinterface/ into a webserver directory (default for Apache: /var/www/).<br/>
 Ensure that the "cgi" folder (src/webinterface/cgi) is allowed Execcgi in your webserver.<br/>
-Change the permissions of the webinterface/cgi/upload/ folder to 777<br/>
+Change the permissions of the webinterface/cgi/uploads/ folder to 777<br/>
 
 -----------------------------------------------------------------------
 
