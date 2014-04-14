@@ -17,29 +17,22 @@ import sys;
 # Licence: Apache 2.0                                                          #
 #                                                                              #
 ################################################################################
-
-chomp(my $scanProgram = `find / -name 'ninkology.pl' 2>/dev/null | sed -n 1p`); #Finds the ninkology.pl program
+chomp(my $scanProgram = `find / -name 'ninkology.pl' 2>/dev/null | sed -n 1p`);
+chomp(my $pipe_scan = `find / -name 'pipe_scan.pl' 2>/dev/null | sed -n 1p`);  #Finds the pipe_scan.pl program
 chomp (my $upload = upOneDirectory(upOneDirectory($scanProgram)));              #Gets the location the program is running in
+chomp(my $updateJobs = `find / -name 'update_jobs.pl' 2>/dev/null | sed -n 1p`);
+chomp(my $scans = `find / -name 'Scans_Completed.txt' 2>/dev/null | sed -n 1p`);
 $upload = $upload . "/cgi/uploads";                   #Upload directory location
-my $upload_dir = "uploads";                           #Upload directory location
+my $upload_dir = "/tmp";                              #Upload directory location
 
 
 my $safe_filename_characters = "a-zA-Z0-9_.-";        #Does not allow some special characters in file name
 my $query = new CGI;                                  #Creates CGI Object
-my $email = $query->param("email");                   #Gets the email name from the form
 my $filename = $query->param("package");              #Gets file name from the form
 my $error = 0;      					     #Flag to check for errors
+my $Jobs;
 
 print $query->header();
-
-#Checks to make sure the email submitted is valid.
-my $validEmail = (Email::Valid->address("$email") ? 'yes' : 'no');
-if($validEmail eq 'no'){
-	$error = 1;
-	&error("Invalid email address.");
-	exit;
-}
-
 
 #Makes sure file is not of length 0, no maximum size is currently set.
 if ( !$filename ) {
@@ -74,12 +67,11 @@ binmode UPLOADFILE;
 while ( <$upload_filehandle> ){
 	print UPLOADFILE;
 }
-	`chmod 766 $upload_dir/$filename1`;
+	`chmod 766 $upload_dir/$filename`;
 close UPLOADFILE;
 
 #Makes sure no errors happened before processing
-if ($error != 1){ 	
-	`perl $scanProgram -m $email $upload/$filename &`;	
+if ($error != 1){ 		
 	&results();
 	exit;
 }
@@ -118,7 +110,7 @@ sub error {
 					Problem: $errorMessage<br/><br/>
 				
 					Please try again:
-					<a href="http://spdxdev.ist.unomaha.edu/ninkology/">Back to home page</a>
+					<a href="../index.html">Back to home page</a>
 					</p>
 				</div><!--content-->
 				
@@ -136,6 +128,13 @@ sub error {
 }
 
 sub results {
+
+	open (SCANS, ">>$scans") or die "Couldn't open: $!";
+                print SCANS "$filename:Working...\n";
+	close (SCANS);
+	
+	`perl $updateJobs &`;
+	
 	my $html = qq{
 
 	<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN" 
@@ -152,24 +151,28 @@ sub results {
 			<div class="mid-span">
 				<div class="header">
 				</div><!--header-->
-				
+
 				<div class="menu">
 					Ninka FOSSology
 				</div><!--menu-->
-				
+
 				<div class="transition">
 				</div>
-				
+
 				<div class="content">
 					<p>
 					Thank you for submitting your file $filename. <br/><br/>
-					A email will be sent to you at: $email <br/> 
-					containing the results of the scan. <br/><br/>
 					
-					The scan can take up to 30min please be patient.<br/>
+					Your file will be availble at (May take a few minutes):
+					<a href="jobs.html">Jobs</a>
+					
+					<br/>
+					Or you can subbmit another file:
+					<a href="http://spdxdev.ist.unomaha.edu/ninkology/">Home</a>
+					
 					</p>
 				</div><!--content-->
-				
+
 				<div class="footer">
 					<p></p>
 				</div><!--Footer-->
@@ -179,8 +182,10 @@ sub results {
 	</body>
 
 	</html>};
+
+	print "$html";
 	
-	print $html;
+	`perl $pipe_scan /tmp/$filename &`;
 }
 
 # Takes a directory path and simulates "cd .." on it.

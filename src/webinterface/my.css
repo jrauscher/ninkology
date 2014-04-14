@@ -8,8 +8,7 @@ del, dfn, em, img, ins, kbd, q, s, samp,
 small, strike, strong, sub, sup, tt, var,
 b, u, i, center,
 dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
+fieldset, form, label, legend,caption, tbody, tfoot, thead, tr, th, td,
 article, aside, canvas, details, embed, 
 figure, figcaption, footer, header, hgroup, 
 menu, nav, output, ruby, section, summary,
@@ -40,10 +39,7 @@ q:before, q:after {
 	content: '';
 	content: none;
 }
-table {
-	border-collapse: collapse;
-	border-spacing: 0;
-}
+
 /*END RESET*/
 
 /*STRUCT*/
@@ -84,7 +80,10 @@ body {
 	padding-top: 5px;
 }
 .transition{
-	height:140px;
+	height:160px;
+	font-size: 20px;
+	color:#193A74;
+	text-align: center;
 	/*background-position: top;*/
 	background-image: url("/img/change2.jpg");
                 -webkit-background-size: cover;
