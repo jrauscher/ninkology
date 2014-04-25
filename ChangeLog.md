@@ -1,3 +1,23 @@
+#Ninkology 1.1.1 (4-25-2014)
+========
+###Bug Fixes: 
+- Cleaned up ninka output on individual file scans.<br/>
+- Ninkology now checks if a package is already being scanned before attempting to scan it.<br/>
+
+###Features: 
+#### Command Line
+- Added '-c' option for removing file paths from file names in output.<br/>
+
+###Performance improvements: 
+- Ninkology now saves the paths for ninka and nomos to a file after 'find'ing them. 'find' is no longer run for every scan (saves a whole .2 seconds per scan!).<br/>
+
+###Documentation: 
+- Added '-c' to Usage section.<br/>
+- Added './' to Usage section.<br/>
+
+-----------------------------------------------------------------------
+
+
 #Ninkology 1.1 (4-14-2014)
 ========
 ###Bug Fixes: 
@@ -22,8 +42,8 @@ None
 - Updated the use cases to more accurately reflect the current working version of Ninkology.<br/>
 
 
-
 -----------------------------------------------------------------------
+
 
 #Ninkology 1.0 (03-21-2014)
 ========
@@ -31,14 +51,14 @@ None
 None
 
 ###Features: 
-- Combined license scanning (with Ninka and FOSSology) of files or packages via command line<br/>
-- Support for uploading a file or package via web interface. Results are sent to user e-mail when the scan is complete<br/>
+- Combined license scanning (with Ninka and FOSSology) of files or packages via command line.<br/>
+- Support for uploading a file or package via web interface. Results are sent to user e-mail when the scan is complete.<br/>
 
 
 ###Performance improvements: 
 None
 
 ###Documentation: 
-- Added README.md, which contains general information about Ninkology 1.0<br/>
-- Added LICENSE.txt, which contains the licensing information of Ninkology<br/>
-- Added DataFlow.pdf, which contains the general data flow of Ninkology<br/>
+- Added README.md, which contains general information about Ninkology 1.0.<br/>
+- Added LICENSE.txt, which contains the licensing information of Ninkology.<br/>
+- Added DataFlow.pdf, which contains the general data flow of Ninkology.<br/>

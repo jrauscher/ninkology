@@ -3,8 +3,7 @@
 use Archive::Extract;
 use strict;
 use warnings;
-use Cwd qw(abs_path);
-
+use Cwd 'abs_path';
 
 
 # Copyright (C) 2014 Ryan Vanek
@@ -39,10 +38,12 @@ use Cwd qw(abs_path);
 # Options:
 # -f        Scan with FOSSology
 # -n        Scan with Ninka
+# -c        Cut the file path from file names
 
 
 my $argv_f = 0;             # Command line argument flag for '-f'
 my $argv_n = 0;             # Command line argument flag for '-n'
+my $argv_c = 0;             # Command line argument flag for '-c'
 
 my $archiveExtractor;       # The instance of the Archive::Extract module
 my $tmpPathFull;            # The full path to the extraction folder
@@ -90,7 +91,13 @@ else
         if ($arg eq '-n')
         {
             $argv_n = 1;
-        }                         
+        }        
+
+        # Cut file paths from file names
+        if ($arg eq '-c')
+        {
+            $argv_c = 1;
+        }
     }
     
     # Default behavior is scan with both if neither -f nor -n is selected
@@ -101,20 +108,83 @@ else
     }
 }
 
+
+
+
+
+
 # Test if the file/package exists
 my $exists = `test -f $packageName && echo 1 || echo 0`;
 # The file or package name given does not exist
 if ($exists == 0)
 {
-    die "\nThe file or package name given ('$packageName') does not exist.\n\n";
+    die "\nThe file or package name given ('$packageName') does not exist.\n\n";  
 }
+
+# Test if a scan is already running on this package name
+if (-d "tmp/$packageName")
+{
+    die "\nA package with an identical name ('$packageName') is already being scanned\n\n";
+}
+
+
+
+
+
+
+
+
+# Check if config file already exists
+if (-e 'config.ninkology')
+{
+    open(my $autoconf, '<', 'config.ninkology');
+    
+    # Get the ninka path and nomos path from the config file
+    foreach my $line (<$autoconf>)
+    {
+        if ($line =~ /ninkaPath\s*=\s*'(.*)'/)
+        {
+            $ninkaProgram = $1;
+        }
+        
+        if ($line =~ /fossPath\s*=\s*'(.*)'/)
+        {
+            $nomosProgram = $1;
+        }
+    }
+    
+    close ($autoconf);
+}
+# Find the ninka and nomos programs and create a config file to store their locations
+else
+{
+    
+    # Set up for the scan
+    # Find the ninka.pl program
+    chomp($ninkaProgram = `find / -name 'ninka.pl' 2>/dev/null | sed -n 1p`);
+    
+    # Find the FOSSology nomos program
+    chomp($nomosProgram = `find / -name 'nomos' -type f 2>/dev/null | sed -n 1p`);
+    
+    # Save the paths for future scans
+    open (my $autoconf, '>', 'config.ninkology') or die $!;
+    print $autoconf "ninkaPath = '$ninkaProgram'\n"; 
+    print $autoconf "fossPath = '$nomosProgram'";
+    close ($autoconf);
+}
+
+
+
+
+
+
+
 
 
 
 # Mute STDERR for a bit (avoids the "error" output when the file is not an archive)
 open (my $OLD_STDERR, '>', *STDERR);
 open (*STDERR, '>', "/dev/null");
-
 
 
 # Set up to scan the files in the archive
@@ -126,18 +196,17 @@ if ($archiveExtractor = Archive::Extract->new(archive=>$packageName))
     # Opening *STDERR seems to create fun files
     `rm *STDERR`;
     `rm GLOB*`;
-
-    # Set flag for rm'ing the extracted files later
-    $receivedArchive = 1;  
-    
-    # Attempt to extract the archive
-    $archiveExtractor->extract(to => "tmp");
     
     # The full file path to the extraction directory
-    $tmpPathFull = $archiveExtractor->extract_path;
+    $tmpPathFull = "tmp/$packageName";
+    
+    # Attempt to extract the archive
+    $archiveExtractor->extract(to => "$tmpPathFull");
+    
+    
 
     # Change to the extraction directory
-    chdir "tmp"; 
+    chdir "$tmpPathFull"; 
     
     # Get the names of the files that are in the archive
     @files = @{$archiveExtractor->files}; 
@@ -152,16 +221,40 @@ else
     `rm *STDERR`;
     `rm GLOB*`;
     
+    my $actualPackageName = $packageName;
+    $packageName = cutPaths($packageName);
+    
     @files = ($packageName);
+    
+    # Create "tmp" if it doesn't exist
+    if (!-e "tmp")
+    {
+        mkdir "tmp";
+    }
+    
+    
+    # Create a tmp directory and copy file to it
+    mkdir "tmp/$packageName";
+    `cp $actualPackageName tmp/$packageName`;
+    chdir "tmp/$packageName";
+    
 }
 
 
-# Set up for the scan
-# Find the ninka.pl program
-chomp($ninkaProgram = `find / -name 'ninka.pl' 2>/dev/null | sed -n 1p`);
 
-# Find the FOSSology nomos program
-chomp($nomosProgram = `find / -name 'nomos' -type f 2>/dev/null | sed -n 1p`);
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -239,6 +332,14 @@ foreach my $fileName (@files)
             }
         }
     }    
+   
+   
+    # Cut the path from the file name
+    if ($argv_c)
+    {
+        $fileName = cutPaths($fileName);
+    }
+    
    
     # Compare to see if Ninka and FOSSology found the same license(s) on the file    
     # If the file/archive was scanned with both Ninka and FOSSology
@@ -323,8 +424,63 @@ foreach my $fileName (@files)
     }
 }
 
-# Remove the unpacked files if it was an archive
-if ($receivedArchive)
+
+
+
+# Remove the stuff
+chdir "..";
+$packageName = cutPaths($packageName);    
+`rm -r $packageName`;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Take a path and cut everything but the last part
+# 'ex' will return 'ex'
+# 'path/ex/' will return 'ex'
+# '/path/ex' will return 'ex'
+# '/path/ex/' will return 'ex'
+sub cutPaths
 {
-    `rm -r $tmpPathFull`;
+    my $filePath = shift;
+        
+    # If the path contains one or more '/'
+    if ($filePath =~ /(?:.*)\/(.*)/)
+    {
+        # Path ends in a '/'
+        if ($1 eq '')
+        {
+            $filePath =~ /(?:.*)\/(.*)\//;
+            return $1;
+        }
+        else
+        {
+            return $1;
+        }
+        
+    }
+    # Just return the name
+    else
+    {
+        return $filePath;
+    }   
 }

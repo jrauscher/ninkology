@@ -1,6 +1,6 @@
 #Ninkology
 ###Version:
-1.1
+1.1.1
 
 ###System Overview:
 Ninkology works to enhance the open source software license identification process by combining the license scan results of Ninka and FOSSology, which are two open source software license identification tools.<br/>
@@ -75,10 +75,13 @@ Types of archive files accepted:
 The main entry point of Ninkology at the command line is ‘ninkology.pl’
 <pre>
 perl ninkology.pl [options] [filename]
+or
+./ninkology.pl [options] [filename]
 
 options:
 -f            Scan the file/package with only FOSSology
 -n            Scan the file/package with only Ninka
+-c            Cut file paths from file names in output
 
 <b>Output:</b>
 The output of ninkology is JSON in the format:
