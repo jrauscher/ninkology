@@ -1,3 +1,24 @@
+#Ninkology 1.2 (5-2-2014)
+========
+###Bug Fixes:
+- Calling ninkology.pl from relative paths (or packages with relative paths) should work better than before.<br/>
+
+###Features:
+- Removed the web interface. No one liked it. Just use the command line.<br/>
+- Changed format of output to better match expected input for 'do_spdx'<br/>
+- Added '-sha1' option to include the SHA-1 of each file scanned<br/>
+- Added '-clean' option, which removes the 'tmp' directory and config file created by ninkology.pl<br/>
+
+###Performance improvements:
+None<br/>
+
+###Documentation:
+- Added '-clean' to Usage section<br/>
+- Added '-sha1' to Usage section<br/>
+
+-----------------------------------------------------------------------
+
+
 #Ninkology 1.1.1 (4-25-2014)
 ========
 ###Bug Fixes: 

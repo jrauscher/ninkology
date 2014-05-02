@@ -1,20 +1,23 @@
 #!/usr/bin/perl
 
 use Archive::Extract;
+use Cwd 'abs_path';
+use Digest::SHA 'sha1_hex';
+use File::Spec;
+
 use strict;
 use warnings;
-use Cwd 'abs_path';
 
-
+# Ninkology 1.2
 # Copyright (C) 2014 Ryan Vanek
-# License: Apache 2.0
+# @License: Apache 2.0
 #
 #
 # This program takes a file or archive and scans the file or files in the archive
 # for open source software licenses using Ninka and FOSSology.
 #
 # Output for each file looks like:
-#   {fileName: <f_val>, LicenseDeclared: <ld_val>, LicenseComment: <c_val>}
+#   {"FileName":"<f_val>", "LicenseDeclared":"<ld_val>", "FileLicenseComments":"<c_val>", "FileChecksum":"<sha1_val>", "FileChecksumAlgorithm":"SHA-1"}
 #
 #   f_val: The name of the file scanned
 #          -- If the file was part of an archive, this includes the path
@@ -27,6 +30,9 @@ use Cwd 'abs_path';
 #   c_val: Comment on the licenseDeclated.
 #          -- Contains the direct outputs of both Ninka and Fossology
 #          -- "#Ninka: <Ninka_output> #FOSSology: <FOSSology_output>"
+#
+#   sha1_val: The SHA-1 value of the contents of the file
+#          -- Algorithm: perl's sha1_hex()
 
 
 # Usage: perl ninkology.pl <options> <filename> 
@@ -36,26 +42,37 @@ use Cwd 'abs_path';
 # .tar, .tgz, .gz, .Z, .zip, .bz2, .tbz, .lzma, .xz, .txz
 #
 # Options:
+# -clean    Clear the 'tmp' directory used for scans
+# -cp       Cut the file path from file names
 # -f        Scan with FOSSology
 # -n        Scan with Ninka
-# -c        Cut the file path from file names
+# -sha1     Add the SHA-1 of each file to the JSON
 
 
 my $argv_f = 0;             # Command line argument flag for '-f'
 my $argv_n = 0;             # Command line argument flag for '-n'
-my $argv_c = 0;             # Command line argument flag for '-c'
+my $argv_cp = 0;            # Command line argument flag for '-c'
+my $argv_sha1 = 0;          # Command line argument flag for '-sha1'
 
 my $archiveExtractor;       # The instance of the Archive::Extract module
-my $tmpPathFull;            # The full path to the extraction folder
+my $tmpPackagePath;         # The full path to the extraction folder
+my $pwd;                    # The directory where 'ninkology.pl' resides
+my $pwdTmp;                 # The tmp directory in $pwd
 
 my $packageName;            # The name of the file or package given
+my $actualPackageName;      # The name of the file or package given, sans paths
 my @files;                  # Holds the file or files in the package
-
-my $receivedArchive = 0;    # Set to 1 if an archive is given
+my $finalOutput;            # The final output JSON printed to STDOUT
 
 my $ninkaProgram;           # Holds the path to ninka.pl
 my $nomosProgram;           # Holds the path to the FOSSology nomos program
 
+my $dummy;                  # Dummy variable
+
+
+# Find where I actually am
+$pwd = upOneDirectory(File::Spec->rel2abs($0));
+$pwdTmp = "$pwd/tmp";
 
 if (!$ARGV[0])
 {
@@ -65,38 +82,69 @@ else
 {
     # Get the file to process
     $packageName = $ARGV[-1];
-
+    $actualPackageName = cutPaths($packageName);
+    
     # Get command line arguments
     foreach my $arg (@ARGV)
-    {
-		# Print out help
-        if ($arg eq '-h' || $arg eq '-help' || $arg eq '--help')
+    {      
+        # Add SHA-1 to the output for each file
+        if ($arg eq '-sha1')
         {
-            print "\n\n";
-            print "Usage: $0 [options] file\n\n";
-            print "Options:\n";            
-            print "-f\t\tScan with only FOSSology\n";
-            print "-n\t\tScan with only Ninka\n";
-            print "\n\n";
-            exit;
+            $argv_sha1 = 1;
         }
-	
+    
+        # Cut file paths from file names
+        elsif ($arg eq '-cp')
+        {
+            $argv_cp = 1;
+        }
+    
         # Scan with only FOSSology
-        if ($arg eq '-f')
+        elsif ($arg eq '-f')
         {
             $argv_f = 1;
         }
         
         # Scan with only Ninka
-        if ($arg eq '-n')
+        elsif ($arg eq '-n')
         {
             $argv_n = 1;
         }        
 
-        # Cut file paths from file names
-        if ($arg eq '-c')
+        # Remove the stuff created by ninkology.pl
+        elsif ($arg eq '-clean')
         {
-            $argv_c = 1;
+            print "\n";
+            if (-d "$pwdTmp")
+            {               
+                `rm -r $pwdTmp`;   
+                print "Removed 'tmp' directory.\n";
+            }
+            if (-e "$pwd/config.ninkology")
+            {
+                `rm $pwd/config.ninkology`;
+                print "Removed config.ninkology.\n";
+            }
+            print "\n";
+            exit;
+        }
+        
+        # Print out help
+        elsif ($arg eq '-h' || $arg eq '-help' || $arg eq '--help')
+        {
+            print "\n\n";
+            print "Usage: $0 [options] file\n\n";
+            print "Options:\n";       
+
+            print "-c\t\tCut the file path from file names\n";
+            print "-clean\t\tClear the 'tmp' directory used for scans\n";
+            print "-f\t\tScan with only FOSSology\n";
+            print "-n\t\tScan with only Ninka\n";                      
+            print "-sha1\t\tAdd the SHA-1 of each file to the JSON\n";
+
+            print "\n\n";
+            
+            exit;
         }
     }
     
@@ -122,9 +170,23 @@ if ($exists == 0)
 }
 
 # Test if a scan is already running on this package name
-if (-d "tmp/$packageName")
+if (-d "$pwdTmp/$actualPackageName")
 {
-    die "\nA package with an identical name ('$packageName') is already being scanned\n\n";
+    # Potential scan in progress
+    print "\nA package with an identical name ('$actualPackageName') might already be in the process of being scanned.\n";
+    print "This can also occur if you have killed a running scan of this package before it finished.\n";
+    print "Do you want to continue anyway? (y/n)\n";
+    
+    chomp(my $choice = <STDIN>);
+    
+    if ($choice eq 'y' || $choice eq 'yes')
+    {
+        `rm -r $pwdTmp/$actualPackageName`;
+    }
+    else
+    {
+        exit;
+    }
 }
 
 
@@ -132,12 +194,10 @@ if (-d "tmp/$packageName")
 
 
 
-
-
 # Check if config file already exists
-if (-e 'config.ninkology')
+if (-e "$pwd/config.ninkology")
 {
-    open(my $autoconf, '<', 'config.ninkology');
+    open(my $autoconf, '<', "$pwd/config.ninkology");
     
     # Get the ninka path and nomos path from the config file
     foreach my $line (<$autoconf>)
@@ -157,8 +217,7 @@ if (-e 'config.ninkology')
 }
 # Find the ninka and nomos programs and create a config file to store their locations
 else
-{
-    
+{     
     # Set up for the scan
     # Find the ninka.pl program
     chomp($ninkaProgram = `find / -name 'ninka.pl' 2>/dev/null | sed -n 1p`);
@@ -167,7 +226,7 @@ else
     chomp($nomosProgram = `find / -name 'nomos' -type f 2>/dev/null | sed -n 1p`);
     
     # Save the paths for future scans
-    open (my $autoconf, '>', 'config.ninkology') or die $!;
+    open (my $autoconf, '>', "$pwd/config.ninkology") or die $!;
     print $autoconf "ninkaPath = '$ninkaProgram'\n"; 
     print $autoconf "fossPath = '$nomosProgram'";
     close ($autoconf);
@@ -181,63 +240,42 @@ else
 
 
 
+if (-B $packageName)
+{
+    # Set up to scan the files in the archive
+    if ($archiveExtractor = Archive::Extract->new(archive=>$packageName))
+    {          
+        # The path to the extraction directory
+        $tmpPackagePath = "$pwdTmp/$actualPackageName";
+        
+        # Remove double slashes from the path because they look ugly
+        $tmpPackagePath =~ s#//#/#g;
+        
+        # Attempt to extract the archive
+        $archiveExtractor->extract(to => "$tmpPackagePath");
 
-# Mute STDERR for a bit (avoids the "error" output when the file is not an archive)
-open (my $OLD_STDERR, '>', *STDERR);
-open (*STDERR, '>', "/dev/null");
-
-
-# Set up to scan the files in the archive
-if ($archiveExtractor = Archive::Extract->new(archive=>$packageName))
-{  
-    # Reopen STDERR
-    open(*STDERR, '>', $OLD_STDERR);
-    close ($OLD_STDERR);
-    # Opening *STDERR seems to create fun files
-    `rm *STDERR`;
-    `rm GLOB*`;
-    
-    # The full file path to the extraction directory
-    $tmpPathFull = "tmp/$packageName";
-    
-    # Attempt to extract the archive
-    $archiveExtractor->extract(to => "$tmpPathFull");
-    
-    
-
-    # Change to the extraction directory
-    chdir "$tmpPathFull"; 
-    
-    # Get the names of the files that are in the archive
-    @files = @{$archiveExtractor->files}; 
+        # Change to the extraction directory
+        chdir "$tmpPackagePath"; 
+        
+        # Get the names of the files that are in the archive
+        @files = @{$archiveExtractor->files}; 
+    }
 }
 # Set up to scan the single file
 else
-{
-    # Reopen STDERR
-    open(*STDERR, '>', $OLD_STDERR);
-    close ($OLD_STDERR);
-    # Opening *STDERR seems to create fun files
-    `rm *STDERR`;
-    `rm GLOB*`;
-    
-    my $actualPackageName = $packageName;
-    $packageName = cutPaths($packageName);
-    
+{       
     @files = ($packageName);
     
     # Create "tmp" if it doesn't exist
-    if (!-e "tmp")
+    if (!-e "$pwdTmp")
     {
-        mkdir "tmp";
-    }
+        mkdir "$pwdTmp";
+    }   
     
-    
-    # Create a tmp directory and copy file to it
-    mkdir "tmp/$packageName";
-    `cp $actualPackageName tmp/$packageName`;
-    chdir "tmp/$packageName";
-    
+    # Create a tmp directory and copy file to it    
+    mkdir "$pwdTmp/$actualPackageName";
+    `cp $packageName $pwdTmp/$actualPackageName`;
+    chdir "$pwdTmp/$packageName";   
 }
 
 
@@ -251,19 +289,20 @@ else
 
 
 
+# Counter variables
+my $x = 1;
+my $z = scalar(@files);
 
-
-
-
-
-
-
-
-
+$finalOutput = "{\n";
 
 # Do both scans on each file
 foreach my $fileName (@files)
 {   
+    print STDERR "\rProcessing file $x/$z...";
+    $x++;
+    $| = 1;
+
+ 
     chomp($fileName);
     
     # Check if file is a directory (ie. ends with a "/")
@@ -274,13 +313,31 @@ foreach my $fileName (@files)
     }   
 
     
+    
+    
+                 
     my $licenseDeclared = "";
-    my $licenseComment = ""; 
+    my $licenseComment = "";
     my $ninkaResult = "";       # Holds the direct output of Ninka
     my $fossResult = "";        # Holds the direct output of FOSSology
     
+    my $sha1 = "";              # The SHA-1 of the file
+    
     my @ninkaResults;           # Holds license name(s) from $ninkaResult
     my @fossResults;            # Holds license name(s) from $fossResult
+    
+    
+    
+    
+    # Add the SHA-1
+    if ($argv_sha1)
+    {             
+        open(my $file, '<', $fileName);
+        $sha1 = sha1_hex(<$file>);
+        close ($file);
+    }
+    
+    
     
     # Scan the file with Ninka
     if ($argv_n)
@@ -294,8 +351,7 @@ foreach my $fileName (@files)
             if ($2 ne 'ERROR')
             {
                 $licenseComment .= "#Ninka: $2 ";        
-
-              
+        
                 if (!$argv_f)
                 {
                     # Declare the license(s) found by Ninka if only scanning with Ninka
@@ -335,7 +391,7 @@ foreach my $fileName (@files)
    
    
     # Cut the path from the file name
-    if ($argv_c)
+    if ($argv_cp)
     {
         $fileName = cutPaths($fileName);
     }
@@ -415,22 +471,37 @@ foreach my $fileName (@files)
         } 
     }
     
-    # Print out the JSON with fileName, licenseDeclared, and licenseComment values
+    # Added the results to the final JSON
     if ($licenseDeclared eq "")
     {}
 	else
     {
-        print "{\"fileName\": \"$fileName\", \"licenseDeclared\": \"$licenseDeclared\", \"licenseComment\": \"$licenseComment\"}\n";
+        # If there is no SHA-1, don't include in output
+        if ($sha1 eq '')
+        {
+            $finalOutput .= "{\"FileName\":\"$fileName\", \"LicenseDeclared\":\"$licenseDeclared\", \"FileLicenseComments\":\"$licenseComment\"},\n";
+        }       
+        else
+        {
+            $finalOutput .= "{\"FileName\":\"$fileName\", \"LicenseDeclared\":\"$licenseDeclared\", \"FileLicenseComments\":\"$licenseComment\", \"FileChecksum\":\"$sha1\", \"FileChecksumAlgorithm\":\"SHA-1\"},\n";
+        }
     }
 }
 
 
+# Print out the final output
+chomp($finalOutput);
+chop($finalOutput);
+$finalOutput .= "\n}";
+print STDERR "\n";
+print $finalOutput;
+print STDERR "\n";
 
 
-# Remove the stuff
-chdir "..";
+# Remove the stuff from 'tmp' directory
+chdir "$pwdTmp";
 $packageName = cutPaths($packageName);    
-`rm -r $packageName`;
+`rm -r $pwdTmp/$packageName`;
 
 
 
@@ -446,13 +517,9 @@ $packageName = cutPaths($packageName);
 
 
 
-
-
-
-
-
-
-
+#-----------------------------
+# subroutines
+#-----------------------------
 
 # Take a path and cut everything but the last part
 # 'ex' will return 'ex'
@@ -483,4 +550,28 @@ sub cutPaths
     {
         return $filePath;
     }   
+}
+
+
+
+# Takes a directory path and simulates "cd .." on it.
+# Returns the directory path with the lowest directory removed
+sub upOneDirectory{
+    my $currentDirectory = shift;
+    my $oneUpDirectory = "";
+    
+    # Given path ends in a slash
+    if ($currentDirectory =~ /.*\/$/)
+    {
+        $currentDirectory =~ /(.*)\/.*\//;
+        $oneUpDirectory = $1;
+    }
+    # Given path does not end in a slash
+    else
+    {
+        $currentDirectory =~ /(.*)\/.*/;
+        $oneUpDirectory = $1;
+    }
+    
+    return $oneUpDirectory;
 }
